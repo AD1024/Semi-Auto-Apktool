@@ -1,0 +1,35 @@
+#!/bin/bash
+clear
+username=`whoami`
+thisDir=`pwd`
+echo "------------------------------"
+echo "     ADB Tools For Linux      "
+echo "          BY AD1024           "
+echo "------------------------------"
+echo " "
+echo "按回车进入操作菜单"
+read anykey
+#Main
+function main(){
+	clear
+	echo "-----------ADB Toolkit For Linux----------"
+	echo "操作选项：                                  "
+	echo "                                           "
+	echo "      (1)查看设备                          "
+	echo "      (2)重启至Recovery			"
+	echo "      (3)重启至Bootloader			"
+	echo "      (4)启动logcat                       "
+	echo "      (5)高级工具				"
+	echo "      (6)退出				"
+	echo -n "输入选项候按回车"
+	read key1
+	case $key1 in
+		1)adb devices;clear;main
+		;;
+		2)adb reboot recovery;main
+		;;
+		3)adb reboot bootloader;main
+		;;
+	esac
+}
+

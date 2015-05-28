@@ -1,0 +1,252 @@
+#!/bin/bash
+clear
+echo " "
+echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+echo "               SEMI AUTO-APKTOOL FOR LINUX            "
+echo "                                 BY AD1024"
+echo "Version:V1.0.0        		        "
+echo " "
+echo "当前Java版本为："
+java -version
+echo "加载完毕！"
+echo "若Java版本无法显示请执行本程序的 配置Java环境 来搭建Java环境！"
+echo "----------------------------------------------------------"
+#--------------Program----------------
+echo "   "
+echo "按回车进入操作菜单"
+read anykey
+function main(){
+	clear
+	echo "     SEMI AUTO-APKTOOL FOR LINUX "
+	echo "--------------------------------------"
+	echo "操作选项：                       "
+	echo "           1)加载框架           "
+	echo "           2)反编译	     "
+	echo "           3)回编APK           "
+	echo "           4)配置Java环境      "
+	echo "           5)退出程序        "
+	echo -n "输入操作选项然后按回车:"
+	read key1
+	case $key1 in
+		1)clear;framework;main
+		;;
+		2)clear;decode;main
+		;;
+		3)clear;build;main
+		;;
+		5)confirm;main
+		;;
+		4)envsetup1;main
+		;;
+		*)echo "输入错误！按回车返回主菜单。";read anykey;main
+		;;
+	
+	esac
+}
+#Framework Load Module
+function framework(){
+	apk_bools=$(ls *.apk 2> /dev/null | wc -l)
+	if [ "$apk_bools" = "0" ]; then
+	echo " "
+	echo "无apk文件,请将framework-res.apk放置在程序根目录"
+	echo " "
+	echo "按回车返回操作菜单"
+	read anykey
+	main
+
+	fi
+	echo "00)返回主菜单"
+	echo "------------------------------------------------------"
+	a=(1)
+	for apk_num in `ls *.apk`
+	do
+		echo "[$a] $apk_num"
+		((a++))
+	done
+	echo ""
+	echo -n "输入序号按回车继续："
+	read key2
+	if [ "$key2" = "00" ];then
+	main
+	fi
+	n=(1)
+	for apk_num1 in `ls *.apk`
+	do
+		if [ "$n" = "$key2" ];then
+			clear
+			echo "-----------加载框架 $apk_num1 -----------"
+			echo ""
+			echo "加载中..."
+			echo ""
+			tools/apktool if $apk_num1
+			echo ""
+			echo "加载完成"
+			echo "回车键返回主菜单"
+			read anykey
+			main
+		fi
+		((n++))
+	done
+	echo "输入错误，请重新输入"
+	read anykey
+	clear
+	framework
+}
+#----------------Decode Moudle-------------
+function decode(){
+	apk_bools=$(ls *.apk 2> /dev/null | wc -l)
+	if [ "$apk_bools" = "0" ]; then
+	echo "无apk文件,请将apk文件放置在程序序根目录"
+	echo " "
+	echo "按回车返回操作菜单"
+	read anykey
+	main
+
+	fi
+	echo "00)返回主菜单"
+	echo "-------------------------------------- "
+	a=(1)
+	for apk_num in `ls *.apk`
+	do
+		echo "[$a] $apk_num"
+		((a++))
+	done
+	echo ""
+	echo -n "输入序号按回车继续："
+	read key3
+	if [ "$key3" = "00" ];then
+		main
+	fi
+	b=(1)
+	for apk_num1 in `ls *.apk`
+	do
+		if [ "$b" = "$key3" ];then
+			clear
+			echo "----------反编译 $apk_num1 -----------"
+			echo ""
+			echo -n "是否反编译resources.arsc (程序资源包)? (y/n 默认:y):"
+			read key_bools
+			case $keybools in
+				n|N)r=-r;;
+				*)r=;;
+			esac
+			echo ""
+			echo -n "是否反编译classes.dex（程序执行文件） ? (y/n 默认:y):"
+			read key_bools1
+			case $keybools1 in
+				n|N)s=-s;;
+				*)s=;;
+			esac
+			echo ""
+			echo "开始反编译..."
+			echo ""
+			dir=`echo "$apk_num1" | awk -F. '{print $1}'`
+			tools/apktool d -f $s $r $apk_num1 decode_dirs/$dir/
+			echo "正在更改文件夹权限，请输入您的密码"
+			sudo chmod -R 777 decode_dirs/$dir/
+			echo ""
+			echo "反编译完成，请检查是否报错"
+			echo "反编译文件夹位于：decode_dirs/$dir"
+			echo "回车键返回主菜单"
+			read anykey
+			main
+		fi
+		((b++))
+	done
+	echo "输入错误，回车键重新输入"
+	read anykey
+	clear
+	decode
+}
+#-----------------Build APK Moudle-------------------
+function build(){
+	dirs_bools=$(ls decode_dirs/ | wc -l)
+	if [ "$dirs_bools" = "0" ]; then
+		echo "没有需要回编译的项目"
+		echo "-------------------------------------------------"
+		echo "提示:回编译前请将需要回编译的文件夹放入decode_dirs目录中"
+		echo ""
+		echo "回车键返回主菜单"
+		read anykey
+		main
+	fi
+	echo "00)返回主菜单"
+	echo "-------------------------------------------------"
+	n=(1)
+	for dir_num in `ls decode_dirs/`
+	do
+		echo "[$n] $dir_num"
+		((n++))
+	done
+	echo ""
+	echo -n "输入序号按回车继续："
+	read key4
+	if [ "$key4" = "00" ];then
+		main
+	fi
+	a=(1)
+	for dir_num1 in `ls decode_dirs/`
+	do
+		if [ "$a" = "$key4" ];then
+			clear
+			echo "--------回编译 $dir_num1 --------"
+			echo ""
+			echo "回编译中..."
+			echo ""
+			PATH=$PATH:`pwd`/tools;
+			export PATH;
+			tools/apktool b -f decode_dirs/$dir_num1 out/$dir_num1.apk
+			echo ""
+			echo "正在更改$dir_num1.apk的权限，请输入密码"
+			sudo chmod -R 777 out
+			echo "回编译完成，请检查是否报错"
+			echo "apk文件生成于：out/$dir_num1.apk"
+			echo "回车键返回主菜单"
+			read anykey
+			main
+		fi
+		((a++))
+	done
+	echo "选项不正确，回车键重新输入..."
+	read anykey
+	clear
+	build
+}
+#----------Quit Confirm Moudle--------------
+function confirm(){
+	echo -n "是否退出？[y/n](默认n):"
+	read key5
+	case $key5 in
+		y)clear;exit;;
+		n)clear;main;;
+		*)clear;main;;
+	esac
+}
+#----------Java EnvSetup Moudle--------------
+function envsetup1(){
+	echo "是否执行环境配置[y/n]（默认n）？"
+	read key00
+	if [ "$key00" = "y" ];then
+	echo "正在拷贝jdk1.8.0_05)至 ~/android"
+	cp -R tools/jdk1.8.0_05 ~/android
+	echo "配置环境前请将tools/profile中 你的用户名 部分改为当前用户名称！"
+	echo "按回车键继续"
+	read anykey
+	source tools/profile
+	echo "Java 版本："
+	echo " "
+	java -version
+	echo " "
+	echo "配置完毕！请检查Java版本是否显示正确！按回车继续"
+	read anykey
+	clear
+	main
+	
+ 	fi
+	echo "按回车键返回..."
+	read anykey
+	clear
+	main
+}
+main
+
